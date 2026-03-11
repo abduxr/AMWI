@@ -4,11 +4,11 @@
 # - "google_sheets" (Google Sheet via API; always latest, even if it’s "in Chrome")
 # - "sharepoint" (Excel hosted on SharePoint/OneDrive, via Microsoft Graph)
 # - "sharepoint_browser" (Excel hosted on SharePoint; download via browser using your login)
-type = "excel"
+type = "sharepoint_browser"
 
 [excel]
 # Path to your Excel file (xlsx/xlsm). Example: "/Users/abdun/Downloads/mw.xlsx"
-path = "/absolute/path/to/your.xlsx"
+path = ""
 
 # Optional: Excel worksheet name. Leave empty to use first sheet.
 worksheet = ""
@@ -32,7 +32,7 @@ service_account_json = "/absolute/path/to/service-account.json"
 # Uses Microsoft Graph to download the workbook from a SharePoint/OneDrive share link.
 # Your example looks like:
 # https://cisco-my.sharepoint.com/:x:/p/.../IQD... (share link)
-share_url = "https://cisco-my.sharepoint.com/:x:/p/USER/FILE"
+share_url = "https://cisco-my.sharepoint.com/:x:/p/dhshah2/IQDsmabtqvtmQLwQZCwGSRRMASrgBeI3X2qKywVd_i6hYzc"
 
 # Optional: worksheet name. Leave empty to use first sheet.
 worksheet = ""
@@ -46,35 +46,34 @@ client_secret = "YOUR_APP_CLIENT_SECRET"
 # No admin / no Azure app needed.
 # One-time: run `python sheet_notifier.py --init-sharepoint-auth --config config.toml`
 # This saves your login session locally (cookies) to `storage_state_path`.
-share_url = "https://cisco-my.sharepoint.com/:x:/p/USER/FILE"
-storage_state_path = "/Users/abdun/Documents/Sheet_Automation/sharepoint.storage.json"
-
+share_url = "https://cisco-my.sharepoint.com/:x:/p/dhshah2/IQDsmabtqvtmQLwQZCwGSRRMAVJiUwhUufb1fuq5ZUtdKTc?e=Kh58Lq"
+storage_state_path = "storage_state_path = "./sharepoint.storage.json"
 # Optional: worksheet name. Leave empty to use first sheet.
-worksheet = ""
+worksheet = "Todays MW"
 
 [filter]
 # Your name as it appears in the sheet
 assignee_name = "N Abdullah"
 
 # Column names in the Excel sheet (update if yours differ)
-col_assignee = "Name"
-col_sa = "SA"
-col_to = "TO"
-col_start = "Start"
-col_end = "End"
-col_customer = "Customer"
-col_status = "Status"
-col_release = "Release"
+col_assignee = "SRE"
+col_sa = "SA ID"
+col_to = "JIRA"
+col_start = "START TIME IST"
+col_end = "END TIME IST"
+col_customer = "STACK"
+col_status = "Review Status - SRE (Assigned)"
+col_release = "Fleetwide (NOAH/ES/ITSI etc.)"
 
 [email]
-from_addr = "you@gmail.com"
-to_addr = "you@gmail.com"
+from_addr = "abduxr.8@gmail.com"
+to_addr = "abduxr.8@gmail.com"
 subject_prefix = "[MW Digest]"
 
 [smtp]
 host = "smtp.gmail.com"
 port = 587
-username = "you@gmail.com"
+username = "abduxr.8@gmail.com"
 # For Gmail: create an App Password and paste it here
-password = "APP_PASSWORD_HERE"
+password = "bfilbpibsnlmxsbv"
 use_tls = true
