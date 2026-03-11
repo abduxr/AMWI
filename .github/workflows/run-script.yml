@@ -2,7 +2,7 @@ name: Sheet Automation
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # runs every 30 minutes
+    - cron: "*/1 * * * *"   # runs every 30 minutes
   workflow_dispatch:
 
 jobs:
