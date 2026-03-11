@@ -469,6 +469,34 @@ def _format_table(cfg: Config, rows: list[dict[str, Any]]) -> str:
     html += "</table>"
     return html
 
+def _format_tables_by_date(cfg: Config, rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return "<p>(none)</p>"
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+
+    for r in rows:
+        raw = r.get(cfg.col_start)
+
+        if raw is None:
+            date_key = "Unknown"
+        else:
+            dt = pd.to_datetime(raw, errors="coerce")
+            if pd.isna(dt):
+                date_key = "Unknown"
+            else:
+                date_key = dt.strftime("%Y-%m-%d")
+
+        grouped.setdefault(date_key, []).append(r)
+
+    html = ""
+
+    for date_key in sorted(grouped.keys()):
+        html += f"<h3>Date: {date_key}</h3>"
+        html += _format_table(cfg, grouped[date_key])
+        html += "<br>"
+
+    return html
 
 def _send_email(cfg: Config, subject: str, body: str) -> None:
     msg = EmailMessage()
@@ -514,14 +542,14 @@ def run_once(config_path: Path, state_path: Path, send_if_no_changes: bool) -> i
     subject = f"{cfg.subject_prefix} {cfg.assignee_name} - {len(new_rows)} new, {len(changed_rows)} updated"
 
     body_parts = [
-        f"MW digest for: {cfg.assignee_name}",
-        f"Generated at: {now_ist}",
-        "",
-        f"New MWs: {len(new_rows)}",
-        _format_table(cfg, new_rows) if new_rows else "(none)",
-        "",
-        f"Updated MWs: {len(changed_rows)}",
-        _format_table(cfg, changed_rows) if changed_rows else "(none)",
+    f"MW digest for: {cfg.assignee_name}",
+    f"Generated at: {now_ist}",
+    "",
+    f"New MWs: {len(new_rows)}",
+    _format_tables_by_date(cfg, new_rows),
+    "",
+    f"Updated MWs: {len(changed_rows)}",
+    _format_tables_by_date(cfg, changed_rows),
     ]
     if removed:
         body_parts += ["", f"Removed since last run: {len(removed)}", "\n".join(removed)]
