@@ -2,7 +2,7 @@ name: MW Digest Automation
 
 on:
   schedule:
-    - cron: "*/3 * * * *"   # 3min once runs daily
+    - cron: "*/5 * * * *"   # 3min once runs daily
   workflow_dispatch:
 
 jobs:
