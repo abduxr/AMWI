@@ -1,8 +1,8 @@
-name: Sheet Automation
+name: MW Digest Automation
 
 on:
   schedule:
-    - cron: "*/1 * * * *"   # runs every 30 minutes
+    - cron: "*/3 * * * *"   # 3min once runs daily
   workflow_dispatch:
 
 jobs:
@@ -11,17 +11,18 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          playwright install chromium
 
-      - name: Run script
+      - name: Run automation
         run: |
           python sheet_notifier.py --config config.toml
