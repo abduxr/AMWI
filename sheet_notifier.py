@@ -142,22 +142,27 @@ def load_config(path: Path) -> Config:
         smtp_password=str(_require(smtp, "password")),
         smtp_use_tls=bool(smtp.get("use_tls", True)),
     )
-
-
+    
 def _read_excel(cfg: Config) -> pd.DataFrame:
     if not cfg.excel_path:
         raise KeyError("excel.path is required when source.type = 'excel'")
     if not cfg.excel_path.exists():
         raise FileNotFoundError(str(cfg.excel_path))
 
-    df = pd.read_excel(
+    dfs = pd.read_excel(
         cfg.excel_path,
-        sheet_name=cfg.excel_worksheet if cfg.excel_worksheet else 0,
+        sheet_name=None,
         engine="openpyxl",
     )
-    df.columns = [str(c).strip() for c in df.columns]
-    return df
 
+    frames = []
+
+    for sheet_name, df in dfs.items():
+        df.columns = [str(c).strip() for c in df.columns]
+        df["__sheet_name"] = sheet_name
+        frames.append(df)
+
+    return pd.concat(frames, ignore_index=True)
 
 def _read_google_sheets(cfg: Config) -> pd.DataFrame:
     if not cfg.gs_spreadsheet_id:
@@ -232,17 +237,28 @@ def _read_sharepoint_excel(cfg: Config) -> pd.DataFrame:
     token = _graph_token(cfg)
     share_id = _share_url_to_share_id(cfg.sp_share_url)
 
-    # Download the workbook content from the share link
     url = f"https://graph.microsoft.com/v1.0/shares/{share_id}/driveItem/content"
     r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, timeout=60)
+
     if r.status_code >= 400:
         raise RuntimeError(f"Graph download failed ({r.status_code}): {r.text[:500]}")
 
     bio = BytesIO(r.content)
-    df = pd.read_excel(bio, sheet_name=cfg.sp_worksheet if cfg.sp_worksheet else 0, engine="openpyxl")
-    df.columns = [str(c).strip() for c in df.columns]
-    return df
 
+    dfs = pd.read_excel(
+        bio,
+        sheet_name=None,
+        engine="openpyxl",
+    )
+
+    frames = []
+
+    for sheet_name, df in dfs.items():
+        df.columns = [str(c).strip() for c in df.columns]
+        df["__sheet_name"] = sheet_name
+        frames.append(df)
+
+    return pd.concat(frames, ignore_index=True)
 
 def init_sharepoint_browser_auth(config_path: Path) -> int:
     """
@@ -281,7 +297,6 @@ def _read_sharepoint_browser_excel(cfg: Config) -> pd.DataFrame:
             f"{cfg.spb_storage_state_path} not found. Run: python sheet_notifier.py --init-sharepoint-auth --config config.toml"
         )
 
-    # Force SharePoint to download the file directly
     download_url = cfg.spb_share_url
     if "?" in download_url:
         download_url += "&download=1"
@@ -292,7 +307,6 @@ def _read_sharepoint_browser_excel(cfg: Config) -> pd.DataFrame:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(storage_state=str(cfg.spb_storage_state_path))
 
-        # Retry download a few times (SharePoint sometimes fails)
         response = None
         for _ in range(3):
             response = context.request.get(download_url)
@@ -308,14 +322,21 @@ def _read_sharepoint_browser_excel(cfg: Config) -> pd.DataFrame:
         browser.close()
 
     bio = BytesIO(content)
-    df = pd.read_excel(
+
+    dfs = pd.read_excel(
         bio,
-        sheet_name=cfg.spb_worksheet if cfg.spb_worksheet else 0,
+        sheet_name=None,
         engine="openpyxl",
     )
 
-    df.columns = [str(c).strip() for c in df.columns]
-    return df
+    frames = []
+
+    for sheet_name, df in dfs.items():
+        df.columns = [str(c).strip() for c in df.columns]
+        df["__sheet_name"] = sheet_name
+        frames.append(df)
+
+    return pd.concat(frames, ignore_index=True)
 
 def _read_sheet(cfg: Config) -> pd.DataFrame:
     if cfg.source_type == "excel":
