@@ -2,7 +2,7 @@ name: MW Digest Automation
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # 3min once runs daily
+    - cron: "30 8 * * *"   # 3min once runs daily
 
 jobs:
   run-script:
